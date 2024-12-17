@@ -94,16 +94,15 @@ void processSpecialKeys(int key, int xx, int yy)
 
 void CreateVBO(void)
 {
-	// varfurile 
 	GLfloat Vertices[] = 
 	{
-		// coordonate                   // culori			// normale
-		// varfuri "ground"
+		// ground vertices
 	   -1500.0f,  -1500.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
 		1500.0f,  -1500.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
 		1500.0f,  1500.0f,  0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
 	   -1500.0f,  1500.0f,  0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
-	   // varfuri cub
+		
+	   // cube vertices
 		-50.0f,  -50.0f, 50.0f, 1.0f,   1.0f, 0.5f, 0.2f,  -1.0f, -1.0f, -1.0f,
 		 50.0f,  -50.0f,  50.0f, 1.0f,  1.0f, 0.5f, 0.2f,  1.0f, -1.0f, -1.0f,
 		 50.0f,  50.0f,  50.0f, 1.0f,   1.0f, 0.5f, 0.2f,  1.0f, 1.0f, -1.0f,
@@ -112,7 +111,8 @@ void CreateVBO(void)
 		 50.0f,  -50.0f,  150.0f, 1.0f, 1.0f, 0.5f, 0.2f,  1.0f, -1.0f, 1.0f,
 		 50.0f,  50.0f,  150.0f, 1.0f,  1.0f, 0.5f, 0.2f,  1.0f, 1.0f, 1.0f,
 		-50.0f,  50.0f, 150.0f, 1.0f,   1.0f, 0.5f, 0.2f,  -1.0f, 1.0f, 1.0f,
-		// varfuri con
+		
+		// cone vertices
 		 -40.0f, -69.28f, 0.0f, 1.0f,   0.1f, 1.0f, 0.2f, -40.0f, -69.28f, 80.0f,
 		 40.0f, -69.28f, 0.0f, 1.0f,    0.1f, 1.0f, 0.2f, 40.0f, -69.28f, 80.0f,
 		 80.0f, 0.0f, 0.0f, 1.0f,       0.1f, 1.0f, 0.2f, 80.0f, 0.0f, 80.0f,
@@ -122,19 +122,21 @@ void CreateVBO(void)
 		  0.0f, 0.0f, 100.0f, 1.0f,     0.3f, 1.0f, 0.2f, 0.0f, 0.0f, 1.0f,
 	};
 
-	// indicii pentru varfuri
+	// vertices index
 	GLubyte Indices[] = 
 	{
-		// fetele "ground"
+		 // ground faces
 		 1, 2, 0,   2, 0, 3,
-		 // fetele cubului
+		
+		 // cube faces
 		 5, 6, 4,   6, 4, 7,
 		 6, 7, 10, 10, 7, 11,
 		 11, 7, 8,   8, 7, 4,
 		 8, 4, 9,   9, 4, 5,
 		 5, 6, 9,   9, 6, 10,
 		 9, 10, 8,  8, 10, 11,
-		 // fetele conului
+
+		 // cone faces
 		 12, 13, 18,
 		 13, 14, 18,
 		 14, 15, 18,
@@ -153,13 +155,13 @@ void CreateVBO(void)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EboId);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
-	// atributul 0 = pozitie
+	// 0: positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)0);
-	// atributul 1 = culoare
+	// 1: colors
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
-	// atributul 2 = normale
+	// 2: normals
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(7 * sizeof(GLfloat)));
 }
@@ -195,10 +197,12 @@ void Initialize(void)
 {
 	modelMatrix = glm::mat4(1.0f);
 	rotationMatrix = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
+	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
 	CreateVBO();
 	CreateShaders();
-	// locatii pentru shader-e
+	
+	// shader locations
 	modelMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
 	shadowMatrixLocation = glGetUniformLocation(ProgramId, "matrUmbra");
 	viewLocation = glGetUniformLocation(ProgramId, "view");
@@ -215,21 +219,23 @@ void RenderFunction(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	
-	//pozitia observatorului
+	// observer 
 	Obsx = Refx + dist * cos(alpha) * cos(beta);
 	Obsy = Refy + dist * cos(alpha) * sin(beta);
 	Obsz = Refz + dist * sin(alpha);
 
-	// matrice de vizualizare + proiectie
-	glm::vec3 Obs = glm::vec3(Obsx, Obsy, Obsz);   // se schimba pozitia observatorului	
-	glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz); // pozitia punctului de referinta
-	glm::vec3 Vert = glm::vec3(Vx, Vy, Vz); // verticala din planul de vizualizare 
+	// view + projection
+	glm::vec3 Obs = glm::vec3(Obsx, Obsy, Obsz);
+	glm::vec3 PctRef = glm::vec3(Refx, Refy, Refz);
+	glm::vec3 Vert = glm::vec3(Vx, Vy, Vz);
+	
 	view = glm::lookAt(Obs, PctRef, Vert);
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, &view[0][0]);
+	
 	projection = glm::infinitePerspective(fov, GLfloat(width) / GLfloat(height), znear);
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, &projection[0][0]);
 
-	// matricea pentru umbra
+	// shadow matrix
 	float D = -0.5f;
 	shadowMatrix[0][0] = zL + D; shadowMatrix[0][1] = 0; shadowMatrix[0][2] = 0; shadowMatrix[0][3] = 0;
 	shadowMatrix[1][0] = 0; shadowMatrix[1][1] = zL + D; shadowMatrix[1][2] = 0; shadowMatrix[1][3] = 0;
@@ -237,12 +243,12 @@ void RenderFunction(void)
 	shadowMatrix[3][0] = -D * xL; shadowMatrix[3][1] = -D * yL; shadowMatrix[3][2] = -D * zL; shadowMatrix[3][3] = zL;
 	glUniformMatrix4fv(shadowMatrixLocation, 1, GL_FALSE, &shadowMatrix[0][0]);
 
-	// Variabile uniforme pentru iluminare
+	// light variables
 	glUniform3f(lightColorLocation, 1.0f, 1.0f, 1.0f);
 	glUniform3f(lightPosLocation, xL, yL, zL);
 	glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
-	// desenare cub
+	// cube
 	codCol = 0;
 	glUniform1i(codColLocation, codCol);
 	modelMatrix = glm::mat4(1.0f);
@@ -250,20 +256,20 @@ void RenderFunction(void)
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
 
-	// desenare con
+	// cone
 	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
 	modelMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
 
-	// desenare umbra cub
+	// shadow cube
 	codCol = 1;
 	glUniform1i(codColLocation, codCol);
 	modelMatrix = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
 
-	// desenare umbra con
+	// shadow cone
 	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
