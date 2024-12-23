@@ -29,7 +29,8 @@ GLuint
 	lightPosLocation,
 	viewPosLocation,
 	codColLocation,
-	colorLocation;
+	colorLocation,
+	ambientStrengthLocation;
 
 
 GLuint VaoIdGround, VaoIdMiddle, VaoIdOuter, VaoIdBirds, VaoIdCar, VaoIdRacer;
@@ -53,7 +54,7 @@ glm::mat4 view;
 float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1, zfar = 1, fov = 45, deltaY = ywmax - ywmin;
 glm::mat4 projection;
 // light source
-float xL = 500.f, yL = 100.f, zL = 400.f;
+float xL = -400.f, yL = -400.f, zL = 400.f;
 // shadow matrix
 float shadowMatrix[4][4];
 
@@ -237,6 +238,7 @@ void Initialize(void)
 	viewPosLocation = glGetUniformLocation(ProgramId, "viewPos");
 	codColLocation = glGetUniformLocation(ProgramId, "codCol");
 	colorLocation = glGetUniformLocation(ProgramId, "color");
+	ambientStrengthLocation = glGetUniformLocation(ProgramId, "ambientStrength");
 }
 
 
@@ -279,80 +281,91 @@ void RenderFunction(void)
 
 	codCol = 0;
 	glUniform1i(codColLocation, codCol);
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
 	
 	modelMatrix = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	
-	color = glm::vec3(0.5f, 0.5f, 0.5f);
+	color = glm::vec3(0.165f, 0.001f, 0.063f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
 
-	// ground.obj
-	glBindVertexArray(VaoIdGround);
-
+	// scale matrix
 	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+	
+	// ground.obj
+	glBindVertexArray(VaoIdGround);
 
 	color = glm::vec3(0.165f, 0.001f, 0.063f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
-	glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
+	// glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
 
 	// middle.obj
 	glBindVertexArray(VaoIdMiddle);
-
-	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 
 	color = glm::vec3(1.0f, 0.037f, 0.091f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawArrays(GL_TRIANGLES, 0, verticesMiddle.size());
 
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.25f);
+
 	// outer.obj
 	glBindVertexArray(VaoIdOuter);
-	
-	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	
 	color = glm::vec3(1.0f, 0.301f, 0.105f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawArrays(GL_TRIANGLES, 0, verticesOuter.size());
 
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
+
+	// racer.obj
+	glBindVertexArray(VaoIdRacer);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesRacer.size());
+
+	// racer shadow
+	codCol = 1;
+	glUniform1i(codColLocation, codCol);
+	glDrawArrays(GL_TRIANGLES, 0, verticesRacer.size());
+
+	codCol = 0;
+	glUniform1i(codColLocation, codCol);
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
+
 	// birds.obj
 	glBindVertexArray(VaoIdBirds);
-	
-	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	
 	color = glm::vec3(0.018f, 0.000392f, 0.008531f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawArrays(GL_TRIANGLES, 0, verticesBirds.size());
 
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 0.25f);
+
 	// car.obj
 	glBindVertexArray(VaoIdCar);
 	
-	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	
-	color = glm::vec3(0.018f, 0.000392f, 0.008531f);
+	color = glm::vec3(1.0f, 0.037f, 0.091f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawArrays(GL_TRIANGLES, 0, verticesCar.size());
 
-	// racer.obj
-	glBindVertexArray(VaoIdRacer);
-	
-	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	
-	color = glm::vec3(1.0f, 0.301f, 0.105f);
-	glUniform3fv(colorLocation, 1, &color[0]);
-	
-	glDrawArrays(GL_TRIANGLES, 0, verticesRacer.size());
+	// car shadow
+	codCol = 1;
+	glUniform1i(codColLocation, codCol);
+	glDrawArrays(GL_TRIANGLES, 0, verticesCar.size());
 
 	glutSwapBuffers();
 	glFlush();

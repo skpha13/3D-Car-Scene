@@ -11,14 +11,15 @@ out vec4 out_Color;
  
 uniform vec3 lightColor;
 uniform int codCol;
+uniform float ambientStrength;
  
 void main(void)
 {
     switch (codCol) {
         case 0:
             // Ambient
-            float ambientStrength = 0.2f;
-            vec3 ambient = ambientStrength * lightColor;
+            float _ambientStrength = ambientStrength;
+            vec3 ambient = _ambientStrength * lightColor;
             
             // Diffuse 
             vec3 normala = normalize(Normal);
@@ -34,7 +35,7 @@ void main(void)
             float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1);
             vec3 specular = specularStrength * spec * lightColor;  
             vec3 emission=vec3(0.0, 0.0, 0.0);
-            vec3 result = emission+(ambient + diffuse + specular) * ex_Color;
+            vec3 result = emission + (ambient + diffuse + specular) * ex_Color;
             out_Color = vec4(result, 1.0f);
             
             break;
