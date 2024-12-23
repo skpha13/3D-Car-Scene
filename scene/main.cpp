@@ -1,17 +1,18 @@
-#include <windows.h>        //	Utilizarea functiilor de sistem Windows (crearea de ferestre, manipularea fisierelor si directoarelor);
-#include <stdlib.h>         //  Biblioteci necesare pentru citirea shaderelor;
+#include <windows.h>       
+#include <stdlib.h>        
 #include <stdio.h>
-#include <math.h>			//	Biblioteca pentru calcule matematice;
-#include <GL/glew.h>        //  Definește prototipurile functiilor OpenGL si constantele necesare pentru programarea OpenGL moderna; 
-#include <GL/freeglut.h>    //	Include functii pentru: 
-							//	- gestionarea ferestrelor si evenimentelor de tastatura si mouse, 
-							//  - desenarea de primitive grafice precum dreptunghiuri, cercuri sau linii, 
-							//  - crearea de meniuri si submeniuri;
-#include "loadShaders.h"	//	Fisierul care face legatura intre program si shadere;
-#include "glm/glm.hpp"		//	Bibloteci utilizate pentru transformari grafice;
+#include <math.h>		
+#include <vector>
+
+#include <GL/glew.h>        
+#include <GL/freeglut.h>
+#include "glm/glm.hpp"	
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+
+#include "loadShaders.h"
+#include "objloader.hpp"
 
 
 GLuint
@@ -49,6 +50,13 @@ glm::mat4 projection;
 float xL = 500.f, yL = 100.f, zL = 400.f;
 // shadow matrix
 float shadowMatrix[4][4];
+
+
+std::vector<glm::vec3> verticesGround, verticesMiddle, verticesOuter, verticesBirds, verticesRacer, verticesCar;
+std::vector<glm::vec2> uvsGround, uvsMiddle, uvsOuter, uvsBirds, uvsRacer, uvsCar;
+std::vector<glm::vec3> normalsGround, normalsMiddle, normalsOuter, normalsBirds, normalsRacer, normalsCar;  
+
+
 
 void processNormalKeys(unsigned char key, int x, int y)
 {
@@ -197,8 +205,15 @@ void Initialize(void)
 {
 	modelMatrix = glm::mat4(1.0f);
 	rotationMatrix = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
+
+	loadOBJ("objs/ground.obj", verticesGround, uvsGround, normalsGround);
+	loadOBJ("objs/middle.obj", verticesMiddle, uvsMiddle, normalsMiddle);
+	loadOBJ("objs/outer.obj", verticesOuter, uvsOuter, normalsOuter);
+	loadOBJ("objs/birds.obj", verticesBirds, uvsBirds, normalsBirds);
+	loadOBJ("objs/racer.obj", verticesRacer, uvsRacer, normalsRacer);
+	loadOBJ("objs/car.obj", verticesCar, uvsCar, normalsCar);
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
+	glClearColor(1.0f, 0.85f, 0.75f, 0.0f); 
 	CreateVBO();
 	CreateShaders();
 	
