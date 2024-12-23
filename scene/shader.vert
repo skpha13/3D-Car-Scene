@@ -29,7 +29,7 @@ void main(void)
             gl_Position = projection * view * myMatrix * in_Position;
             Normal =mat3(projection * view * myMatrix) * in_Normal; 
             inLightPos = vec3(projection * view * myMatrix * vec4(lightPos, 1.0f));
-            inViewPos =vec3(projection * view * myMatrix * vec4(viewPos, 1.0f));
+            inViewPos = vec3(projection * view * myMatrix * vec4(viewPos, 1.0f));
             dir = mat3(projection * view * myMatrix) * vec3(0.0,100.0,200.0);
             FragPos = vec3(gl_Position);
             

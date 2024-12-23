@@ -30,6 +30,10 @@ GLuint
 	viewPosLocation,
 	codColLocation;
 
+
+GLuint VaoIdGround, VaoIdMiddle, VaoIdOuter, VaoIdBirds, VaoIdCar, VaoIdRacer;
+GLuint VboIdGround, VboIdMiddle, VboIdOuter, VboIdBirds, VboIdCar, VboIdRacer;
+
 int codCol;
 float PI = 3.141592;
 
@@ -44,7 +48,7 @@ float Vx = 0.0, Vy = 0.0, Vz = 1.0;
 glm::mat4 view;
 
 // elements for projection matrix
-float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1, zfar = 1, fov = 45;
+float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1, zfar = 1, fov = 45, deltaY = ywmax - ywmin;
 glm::mat4 projection;
 // light source
 float xL = 500.f, yL = 100.f, zL = 400.f;
@@ -175,6 +179,27 @@ void CreateVBO(void)
 }
 
 
+void CreateVboObjs(void)
+{
+	// ground.obj
+	glGenVertexArrays(1, &VaoIdGround);
+	glBindVertexArray(VaoIdGround);
+	
+	glGenBuffers(1, &VboIdGround);
+	glBindBuffer(GL_ARRAY_BUFFER, VboIdGround);
+	glBufferData(GL_ARRAY_BUFFER, verticesGround.size() * sizeof(glm::vec3) + normalsGround.size() * sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, verticesGround.size() * sizeof(glm::vec3), &verticesGround[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, verticesGround.size() * sizeof(glm::vec3), normalsGround.size() * sizeof(glm::vec3), &normalsGround[0]);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(verticesGround.size() * sizeof(glm::vec3)));
+	
+	// middle.obj
+}
+
+
 void DestroyVBO(void)
 {
 	glDisableVertexAttribArray(2);
@@ -213,8 +238,10 @@ void Initialize(void)
 	loadOBJ("objs/racer.obj", verticesRacer, uvsRacer, normalsRacer);
 	loadOBJ("objs/car.obj", verticesCar, uvsCar, normalsCar);
 	
-	glClearColor(1.0f, 0.85f, 0.75f, 0.0f); 
+	glClearColor(1.0f, 0.85f, 0.75f, 0.0f);
+
 	CreateVBO();
+	CreateVboObjs();
 	CreateShaders();
 	
 	// shader locations
@@ -263,31 +290,25 @@ void RenderFunction(void)
 	glUniform3f(lightPosLocation, xL, yL, zL);
 	glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
-	// cube
+	// ground
+	glBindVertexArray(VaoId);
+
 	codCol = 0;
 	glUniform1i(codColLocation, codCol);
 	modelMatrix = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
 
-	// cone
-	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
-	modelMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
+	// ground.obj
+	glBindVertexArray(VaoIdGround);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-	// shadow cube
-	codCol = 1;
-	glUniform1i(codColLocation, codCol);
-	modelMatrix = glm::mat4(1.0f);
+	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
-
-	// shadow cone
-	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
 
 	glutSwapBuffers();
 	glFlush();
