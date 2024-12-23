@@ -1,17 +1,18 @@
-#include <windows.h>        //	Utilizarea functiilor de sistem Windows (crearea de ferestre, manipularea fisierelor si directoarelor);
-#include <stdlib.h>         //  Biblioteci necesare pentru citirea shaderelor;
+#include <windows.h>       
+#include <stdlib.h>        
 #include <stdio.h>
-#include <math.h>			//	Biblioteca pentru calcule matematice;
-#include <GL/glew.h>        //  Definește prototipurile functiilor OpenGL si constantele necesare pentru programarea OpenGL moderna; 
-#include <GL/freeglut.h>    //	Include functii pentru: 
-							//	- gestionarea ferestrelor si evenimentelor de tastatura si mouse, 
-							//  - desenarea de primitive grafice precum dreptunghiuri, cercuri sau linii, 
-							//  - crearea de meniuri si submeniuri;
-#include "loadShaders.h"	//	Fisierul care face legatura intre program si shadere;
-#include "glm/glm.hpp"		//	Bibloteci utilizate pentru transformari grafice;
+#include <math.h>		
+#include <vector>
+
+#include <GL/glew.h>        
+#include <GL/freeglut.h>
+#include "glm/glm.hpp"	
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+
+#include "loadShaders.h"
+#include "objloader.hpp"
 
 
 GLuint
@@ -27,28 +28,41 @@ GLuint
 	lightColorLocation,
 	lightPosLocation,
 	viewPosLocation,
-	codColLocation;
+	codColLocation,
+	colorLocation,
+	ambientStrengthLocation;
+
+
+GLuint VaoIdGround, VaoIdMiddle, VaoIdOuter, VaoIdBirds, VaoIdCar, VaoIdRacer;
+GLuint VboIdGround, VboIdMiddle, VboIdOuter, VboIdBirds, VboIdCar, VboIdRacer;
 
 int codCol;
 float PI = 3.141592;
 
 // matrices
 glm::mat4 modelMatrix, rotationMatrix;
+glm::vec3 color;
 
 // elements for view matrix
 float Refx = 0.0f, Refy = 0.0f, Refz = 0.0f;
-float alpha = PI / 8, beta = 0.0f, dist = 400.0f;
+float alpha = PI / 8, beta = 0.0f, dist = 475.0f;
 float Obsx, Obsy, Obsz;
-float Vx = 0.0, Vy = 0.0, Vz = 1.0;
+float Vx = 0.0, Vy = 0.0, Vz = 500.0;
 glm::mat4 view;
 
 // elements for projection matrix
-float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1, zfar = 1, fov = 45;
+float width = 800, height = 600, xwmin = -800.f, xwmax = 800, ywmin = -600, ywmax = 600, znear = 0.1, zfar = 1, fov = 45, deltaY = ywmax - ywmin;
 glm::mat4 projection;
 // light source
-float xL = 500.f, yL = 100.f, zL = 400.f;
+float xL = -400.f, yL = -400.f, zL = 400.f;
 // shadow matrix
 float shadowMatrix[4][4];
+
+
+std::vector<glm::vec3> verticesGround, verticesMiddle, verticesOuter, verticesBirds, verticesRacer, verticesCar;
+std::vector<glm::vec2> uvsGround, uvsMiddle, uvsOuter, uvsBirds, uvsRacer, uvsCar;
+std::vector<glm::vec3> normalsGround, normalsMiddle, normalsOuter, normalsBirds, normalsRacer, normalsCar;  
+
 
 void processNormalKeys(unsigned char key, int x, int y)
 {
@@ -61,6 +75,9 @@ void processNormalKeys(unsigned char key, int x, int y)
 		Vx += 0.1;
 		break;
 	case '+':
+		dist += 5;
+		break;
+	case '=':
 		dist += 5;
 		break;
 	case '-':
@@ -97,29 +114,10 @@ void CreateVBO(void)
 	GLfloat Vertices[] = 
 	{
 		// ground vertices
-	   -1500.0f,  -1500.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
-		1500.0f,  -1500.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
-		1500.0f,  1500.0f,  0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
-	   -1500.0f,  1500.0f,  0.0f, 1.0f,  1.0f, 1.0f, 0.9f,  0.0f, 0.0f, 1.0f,
-		
-	   // cube vertices
-		-50.0f,  -50.0f, 50.0f, 1.0f,   1.0f, 0.5f, 0.2f,  -1.0f, -1.0f, -1.0f,
-		 50.0f,  -50.0f,  50.0f, 1.0f,  1.0f, 0.5f, 0.2f,  1.0f, -1.0f, -1.0f,
-		 50.0f,  50.0f,  50.0f, 1.0f,   1.0f, 0.5f, 0.2f,  1.0f, 1.0f, -1.0f,
-		-50.0f,  50.0f, 50.0f, 1.0f,    1.0f, 0.5f, 0.2f,  -1.0f, 1.0f, -1.0f,
-		-50.0f,  -50.0f, 150.0f, 1.0f,  1.0f, 0.5f, 0.2f,  -1.0f, -1.0f, 1.0f,
-		 50.0f,  -50.0f,  150.0f, 1.0f, 1.0f, 0.5f, 0.2f,  1.0f, -1.0f, 1.0f,
-		 50.0f,  50.0f,  150.0f, 1.0f,  1.0f, 0.5f, 0.2f,  1.0f, 1.0f, 1.0f,
-		-50.0f,  50.0f, 150.0f, 1.0f,   1.0f, 0.5f, 0.2f,  -1.0f, 1.0f, 1.0f,
-		
-		// cone vertices
-		 -40.0f, -69.28f, 0.0f, 1.0f,   0.1f, 1.0f, 0.2f, -40.0f, -69.28f, 80.0f,
-		 40.0f, -69.28f, 0.0f, 1.0f,    0.1f, 1.0f, 0.2f, 40.0f, -69.28f, 80.0f,
-		 80.0f, 0.0f, 0.0f, 1.0f,       0.1f, 1.0f, 0.2f, 80.0f, 0.0f, 80.0f,
-		 40.0f, 69.28f, 0.0f, 1.0f,     0.1f, 1.0f, 0.2f, 40.0f, 69.28f, 80.0f,
-		-40.0f, 69.28f, 0.0f, 1.0f,     0.1f, 1.0f, 0.2f, -40.0f, 69.28f, 80.0f,
-		-80.0f, 0.0f,  0.0f, 1.0f,      0.1f, 1.0f, 0.2f, -80.0f, 0.0f, 80.0f,
-		  0.0f, 0.0f, 100.0f, 1.0f,     0.3f, 1.0f, 0.2f, 0.0f, 0.0f, 1.0f,
+	   -1500.0f,  -1500.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		1500.0f,  -1500.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		1500.0f,  1500.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	   -1500.0f,  1500.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 	};
 
 	// vertices index
@@ -127,22 +125,6 @@ void CreateVBO(void)
 	{
 		 // ground faces
 		 1, 2, 0,   2, 0, 3,
-		
-		 // cube faces
-		 5, 6, 4,   6, 4, 7,
-		 6, 7, 10, 10, 7, 11,
-		 11, 7, 8,   8, 7, 4,
-		 8, 4, 9,   9, 4, 5,
-		 5, 6, 9,   9, 6, 10,
-		 9, 10, 8,  8, 10, 11,
-
-		 // cone faces
-		 12, 13, 18,
-		 13, 14, 18,
-		 14, 15, 18,
-		 15, 16, 18,
-		 16, 17, 18,
-		 17, 12, 18
 	};
 
 	glGenVertexArrays(1, &VaoId);
@@ -157,19 +139,54 @@ void CreateVBO(void)
 
 	// 0: positions
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)0);
-	// 1: colors
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+	// 1: normals
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
-	// 2: normals
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(GLfloat), (GLvoid*)(7 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
+}
+
+
+void CreateVboObj(GLuint &VaoIdFunction, GLuint &VboIdFunction, std::vector<glm::vec3> &verticesFunction, std::vector<glm::vec3> &normalsFunction)
+{
+	glGenVertexArrays(1, &VaoIdFunction);
+	glBindVertexArray(VaoIdFunction);
+	
+	glGenBuffers(1, &VboIdFunction);
+	glBindBuffer(GL_ARRAY_BUFFER, VboIdFunction);
+	glBufferData(GL_ARRAY_BUFFER, verticesFunction.size() * sizeof(glm::vec3) + normalsFunction.size() * sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, verticesFunction.size() * sizeof(glm::vec3), &verticesFunction[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, verticesFunction.size() * sizeof(glm::vec3), normalsFunction.size() * sizeof(glm::vec3), &normalsFunction[0]);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)(verticesFunction.size() * sizeof(glm::vec3)));
+}
+
+void CreateVboObjs(void)
+{
+	// ground.obj
+	CreateVboObj(VaoIdGround, VboIdGround, verticesGround, normalsGround);
+	
+	// middle.obj
+	CreateVboObj(VaoIdMiddle, VboIdMiddle, verticesMiddle, normalsMiddle);
+
+	// outer.obj
+	CreateVboObj(VaoIdOuter, VboIdOuter, verticesOuter, normalsOuter);
+
+	// birds.obj
+	CreateVboObj(VaoIdBirds, VboIdBirds, verticesBirds, normalsBirds);
+	
+	// car.obj
+	CreateVboObj(VaoIdCar, VboIdCar, verticesCar, normalsCar);
+	
+	// racer.obj
+	CreateVboObj(VaoIdRacer, VboIdRacer, verticesRacer, normalsRacer);
 }
 
 
 void DestroyVBO(void)
 {
-	glDisableVertexAttribArray(2);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -197,9 +214,18 @@ void Initialize(void)
 {
 	modelMatrix = glm::mat4(1.0f);
 	rotationMatrix = glm::rotate(glm::mat4(1.0f), PI / 8, glm::vec3(0.0, 0.0, 1.0));
+
+	loadOBJ("objs/ground.obj", verticesGround, uvsGround, normalsGround);
+	loadOBJ("objs/middle.obj", verticesMiddle, uvsMiddle, normalsMiddle);
+	loadOBJ("objs/outer.obj", verticesOuter, uvsOuter, normalsOuter);
+	loadOBJ("objs/birds.obj", verticesBirds, uvsBirds, normalsBirds);
+	loadOBJ("objs/racer.obj", verticesRacer, uvsRacer, normalsRacer);
+	loadOBJ("objs/car.obj", verticesCar, uvsCar, normalsCar);
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
+	glClearColor(1.0f, 0.85f, 0.75f, 0.0f);
+
 	CreateVBO();
+	CreateVboObjs();
 	CreateShaders();
 	
 	// shader locations
@@ -211,6 +237,8 @@ void Initialize(void)
 	lightPosLocation = glGetUniformLocation(ProgramId, "lightPos");
 	viewPosLocation = glGetUniformLocation(ProgramId, "viewPos");
 	codColLocation = glGetUniformLocation(ProgramId, "codCol");
+	colorLocation = glGetUniformLocation(ProgramId, "color");
+	ambientStrengthLocation = glGetUniformLocation(ProgramId, "ambientStrength");
 }
 
 
@@ -248,31 +276,96 @@ void RenderFunction(void)
 	glUniform3f(lightPosLocation, xL, yL, zL);
 	glUniform3f(viewPosLocation, Obsx, Obsy, Obsz);
 
-	// cube
+	// ground
+	glBindVertexArray(VaoId);
+
 	codCol = 0;
 	glUniform1i(codColLocation, codCol);
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
+	
 	modelMatrix = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+	
+	color = glm::vec3(0.165f, 0.001f, 0.063f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
 
-	// cone
-	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
-	modelMatrixLocation = glGetUniformLocation(ProgramId, "myMatrix");
+	// scale matrix
+	modelMatrix = glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(deltaY, deltaY, deltaY));
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
+	
+	// ground.obj
+	glBindVertexArray(VaoIdGround);
 
-	// shadow cube
+	color = glm::vec3(0.165f, 0.001f, 0.063f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
+	// glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
+
+	// middle.obj
+	glBindVertexArray(VaoIdMiddle);
+
+	color = glm::vec3(1.0f, 0.037f, 0.091f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesMiddle.size());
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.25f);
+
+	// outer.obj
+	glBindVertexArray(VaoIdOuter);
+	
+	color = glm::vec3(1.0f, 0.301f, 0.105f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesOuter.size());
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
+
+	// racer.obj
+	glBindVertexArray(VaoIdRacer);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesRacer.size());
+
+	// racer shadow
 	codCol = 1;
 	glUniform1i(codColLocation, codCol);
-	modelMatrix = glm::mat4(1.0f);
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, (void*)(6));
+	glDrawArrays(GL_TRIANGLES, 0, verticesRacer.size());
 
-	// shadow cone
-	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, 150.0));
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_BYTE, (void*)(42));
+	codCol = 0;
+	glUniform1i(codColLocation, codCol);
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 1.0f);
+
+	// birds.obj
+	glBindVertexArray(VaoIdBirds);
+	
+	color = glm::vec3(0.018f, 0.000392f, 0.008531f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesBirds.size());
+
+	// ambient strength
+	glUniform1f(ambientStrengthLocation, 0.25f);
+
+	// car.obj
+	glBindVertexArray(VaoIdCar);
+	
+	color = glm::vec3(1.0f, 0.037f, 0.091f);
+	glUniform3fv(colorLocation, 1, &color[0]);
+	
+	glDrawArrays(GL_TRIANGLES, 0, verticesCar.size());
+
+	// car shadow
+	codCol = 1;
+	glUniform1i(codColLocation, codCol);
+	glDrawArrays(GL_TRIANGLES, 0, verticesCar.size());
 
 	glutSwapBuffers();
 	glFlush();
