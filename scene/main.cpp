@@ -45,7 +45,7 @@ glm::vec3 color;
 
 // elements for view matrix
 float Refx = 0.0f, Refy = 0.0f, Refz = 0.0f;
-float alpha = PI / 8, beta = 0.0f, dist = 475.0f;
+float alpha = PI / 16, beta = 0.0f, dist = 470.0f;
 float Obsx, Obsy, Obsz;
 float Vx = 0.0, Vy = 0.0, Vz = 500.0;
 glm::mat4 view;
@@ -288,7 +288,7 @@ void RenderFunction(void)
 	modelMatrix = glm::mat4(1.0f);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 	
-	color = glm::vec3(0.165f, 0.001f, 0.063f);
+	color = glm::vec3(0.205f, 0.041f, 0.103f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
@@ -303,7 +303,7 @@ void RenderFunction(void)
 	color = glm::vec3(0.165f, 0.001f, 0.063f);
 	glUniform3fv(colorLocation, 1, &color[0]);
 	
-	// glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
+	glDrawArrays(GL_TRIANGLES, 0, verticesGround.size());
 
 	// middle.obj
 	glBindVertexArray(VaoIdMiddle);
