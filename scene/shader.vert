@@ -1,8 +1,7 @@
 #version 330 core
 
 layout(location=0) in vec4 in_Position;
-layout(location=1) in vec3 in_Color;
-layout(location=2) in vec3 in_Normal;
+layout(location=1) in vec3 in_Normal;
  
 out vec3 FragPos;
 out vec3 Normal;
@@ -12,17 +11,22 @@ out vec3 ex_Color;
 out vec3 dir;
  
 uniform mat4 matrUmbra;
+
 uniform mat4 myMatrix;
 uniform mat4 view;
-uniform mat4 projection;
-uniform vec3 lightPos;
 uniform vec3 viewPos;
+
+uniform mat4 projection;
+
+uniform vec3 lightPos;
 uniform vec3 lightColor;
+
 uniform int codCol;
+uniform vec3 color;
 
 void main(void)
 {
-    ex_Color=in_Color;
+    ex_Color = color;
     
     switch (codCol) {
         case 0: 
